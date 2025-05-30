@@ -1,8 +1,8 @@
-const OpenblockResourceServer = require('../index');
+const GovinResourceServer = require('../index');
 const clc = require('cli-color');
 const {AbortController} = require('node-abort-controller');
 
-const resourceServer = new OpenblockResourceServer();
+const resourceServer = new GovinResourceServer();
 const controller = new AbortController();
 
 // Test the check update abort funciton.

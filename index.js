@@ -12,7 +12,7 @@ const {
     DEFAULT_LOCALE
 } = require('./src/config');
 
-class OpenblockResourceServer extends Emitter{
+class GovinResourceServer extends Emitter{
     constructor (cacheResourcesPath, builtinResourcesPath, locale = DEFAULT_LOCALE) {
         super();
 
@@ -28,24 +28,24 @@ class OpenblockResourceServer extends Emitter{
             this._builtinResourcesPath = path.join(DEFAULT_BUILTIN_RESOURCES_PATH);
         }
 
-        // If the path to OPENBLOCK_EXTERNAL_RESOURCES is set in the environment variable, or there
-        // is an OpenBlockExternalResources folder in the same directory as the software installation directory,
+        // If the path to Govin_EXTERNAL_RESOURCES is set in the environment variable, or there
+        // is an GovinExternalResources folder in the same directory as the software installation directory,
         // the content in this path or directory will be used first, rather than the content in the software
         // installation path.
         // This method is used when customizing by a third-party manufacturer, so as to avoid overwriting
         // the content of the third - party manufacturer when updating the software.
         // For MAC or Linux devices, it is not practical to use a path relative to the installation
-        // directory to store OpenBlockExternalResources, so we will scan the external resources path
+        // directory to store GovinExternalResources, so we will scan the external resources path
         // set in the environment variable first.
-        const envOpenBlockExternalResources = process.env.OPENBLOCK_EXTERNAL_RESOURCES;
-        if (envOpenBlockExternalResources) {
-            console.info(`env OPENBLOCK_EXTERNAL_RESOURCES: \
-"${envOpenBlockExternalResources}"`);
-            this._builtinResourcesPath = envOpenBlockExternalResources;
+        const envGovinExternalResources = process.env.GOVIN_EXTERNAL_RESOURCES;
+        if (envGovinExternalResources) {
+            console.info(`env GOVIN_EXTERNAL_RESOURCES: \
+"${envGovinExternalResources}"`);
+            this._builtinResourcesPath = envGovinExternalResources;
         } else {
-            const thirdPartyResourcesPath = path.join(this._builtinResourcesPath, '../../OpenBlockExternalResources');
+            const thirdPartyResourcesPath = path.join(this._builtinResourcesPath, '../../GovinExternalResources');
             if (fs.existsSync(thirdPartyResourcesPath)) {
-                console.info('The OpenBlockExternalResources folder is detected in the parent directory');
+                console.info('The GovinExternalResources folder is detected in the parent directory');
                 this._builtinResourcesPath = thirdPartyResourcesPath;
             }
         }
@@ -117,4 +117,4 @@ class OpenblockResourceServer extends Emitter{
     }
 }
 
-module.exports = OpenblockResourceServer;
+module.exports = GovinResourceServer;

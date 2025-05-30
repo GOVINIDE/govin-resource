@@ -13,10 +13,10 @@
     "arduino-staging": "script/bin/arduino-staging.js"
   },
   "scripts": {
-    "fetch": "rimraf external-resources download && node script/download.js --repo=openblockcc/external-resources-v3 --plat=github",
+    "fetch": "rimraf external-resources download && node script/download.js --repo=GOVINIDE/external-resources-v2 --plat=github",
     "start": "node ./test/start-server.js",
-    "start:clear": "rimraf ../.openblockData/external-resources && node ./test/start-server.js",
-    "clean": "rimraf external-resources dist translation download ../.openblockData/external-resources",
+    "start:clear": "rimraf ../.GovinData/external-resources && node ./test/start-server.js",
+    "clean": "rimraf external-resources dist translation download ../.govinData/external-resources",
     "build:extension": "node script/generate-extension-page.js --url=https://openblockcc.github.io/external-resources/",
     "build:device": "node script/generate-device-page.js --url=https://openblockcc.github.io/external-resources/",
     "build": "rimraf dist && npm run build:extension && npm run build:device",
@@ -51,8 +51,8 @@
     "node-abort-controller": "^3.0.1",
     "node-fetch": "^2.7.0",
     "node-fetch-progress": "^1.0.2",
-    "govin-l10n": "^3.15.20240615153110",
-    "govin-parse-release-message": "0.0.1",
+    "govin-l10n": "^2.0.5",
+    "govin-parse-release-message": "0.0.4",
     "proper-lockfile": "^4.1.2",
     "require-all": "^3.0.0"
   },

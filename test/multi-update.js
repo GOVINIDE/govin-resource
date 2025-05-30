@@ -1,8 +1,8 @@
-const OpenblockResourceServer = require('../index');
+const GovinResourceServer = require('../index');
 const clc = require('cli-color');
 
-const resourceServer1 = new OpenblockResourceServer();
-const resourceServer2 = new OpenblockResourceServer();
+const resourceServer1 = new GovinResourceServer();
+const resourceServer2 = new GovinResourceServer();
 
 // Test the anti-duplicate update function of the updater.
 resourceServer1.checkUpdate()

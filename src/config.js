@@ -4,7 +4,7 @@ const path = require('path');
  * The path of default cache resource.
  * @readonly
  */
-const DEFAULT_CACHE_RESOURCES_PATH = path.join(__dirname, '../../.openblockData/external-resources');
+const DEFAULT_CACHE_RESOURCES_PATH = path.join(__dirname, '../../.govinData/external-resources');
 
 /**
  * The path of default build-in resource.
@@ -34,10 +34,10 @@ const DEFAULT_PORT = 20112;
  * Server name, ues in root path.
  * @readonly
  */
-const SERVER_NAME = 'openblock-resource-server';
+const SERVER_NAME = 'govin-resource-server';
 
 /**
- * The time interval for retrying to open the port after the port is occupied by another openblock-resource server.
+ * The time interval for retrying to open the port after the port is occupied by another govin-resource server.
  * @readonly
  */
 const REOPEN_INTERVAL = 1000 * 1;

@@ -7,7 +7,7 @@ const TYPE = 'devices';
 /**
  * A server to provide local devices resource.
  */
-class OpenBlockDevice {
+class GovinDevice {
 
     constructor () {
         this.type = TYPE;
@@ -112,4 +112,4 @@ class OpenBlockDevice {
     }
 }
 
-module.exports = OpenBlockDevice;
+module.exports = GovinDevice;

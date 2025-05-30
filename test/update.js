@@ -1,7 +1,7 @@
-const OpenblockResourceServer = require('../index');
+const GovinResourceServer = require('../index');
 const clc = require('cli-color');
 
-const resourceServer = new OpenblockResourceServer();
+const resourceServer = new GovinResourceServer();
 
 // Test the update funciton.
 resourceServer.checkUpdate()

@@ -1,9 +1,9 @@
-const OpenblockResourceServer = require('../index');
+const GovinResourceServer = require('../index');
 const clc = require('cli-color');
 
-const resourceServer1 = new OpenblockResourceServer();
-const resourceServer2 = new OpenblockResourceServer();
-const resourceServer3 = new OpenblockResourceServer();
+const resourceServer1 = new GovinResourceServer();
+const resourceServer2 = new GovinResourceServer();
+const resourceServer3 = new GovinResourceServer();
 
 // Test performance when launching multiple servers
 resourceServer1.listen();

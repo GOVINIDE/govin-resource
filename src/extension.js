@@ -7,7 +7,7 @@ const TYPE = 'extensions';
 /**
  * A server to provide local extensions resource.
  */
-class OpenBlockExtension {
+class GovinExtension {
 
     constructor () {
         this.type = TYPE;
@@ -67,4 +67,4 @@ class OpenBlockExtension {
     }
 }
 
-module.exports = OpenBlockExtension;
+module.exports = GovinExtension;
