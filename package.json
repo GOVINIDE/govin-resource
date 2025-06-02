@@ -1,17 +1,9 @@
 {
   "name": "govin-resource",
-  "version": "0.2.1",
+  "version": "2.1.7",
   "description": "External resources for govin projects",
   "main": "index.js",
-  "bin": {
-    "gen-config": "./script/bin/gen-config.js",
-    "upload-releaseInfo": "./script/bin/upload-latest-release-info.mjs",
-    "upload-file": "./script/bin/upload-file.mjs",
-    "i18n-extract": "./script/i18n/extract-format-message.js",
-    "i18n-push": "./script/i18n/push-format-message.js",
-    "i18n-update": "./script/i18n/update-translations.js",
-    "arduino-staging": "script/bin/arduino-staging.js"
-  },
+
   "scripts": {
     "build": "rimraf dist && npm run build:extension && npm run build:device",
     "build:device": "node script/generate-device-page.js --url=https://openblockcc.github.io/external-resources/",
