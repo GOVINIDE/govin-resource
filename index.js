@@ -3,67 +3,114 @@ const Emitter = require('events');
 const path = require('path');
 const compareVersions = require('compare-versions');
 const clc = require('cli-color');
+const lockFile = require('proper-lockfile');
 
 const ResourceServer = require('./src/server');
 const ResourceUpdater = require('./src/updater');
+const {checkDirHash} = require('./src/calc-dir-hash');
+const {INIT_RESOURCES_STEP} = require('./src/state');
+const getConfigHash = require('./src/get-config-hash');
 const {
-    DEFAULT_CACHE_RESOURCES_PATH,
-    DEFAULT_BUILTIN_RESOURCES_PATH,
-    DEFAULT_LOCALE
+    DIRECTORY_NAME,
+    DEFAULT_USER_DATA_PATH,
+    DEFAULT_LOCALE,
+    RECHECK_INTERVAL
 } = require('./src/config');
 
 class GovinResourceServer extends Emitter{
-    constructor (cacheResourcesPath, builtinResourcesPath, locale = DEFAULT_LOCALE) {
+    constructor (userDataPath, initialResourcesPath, locale = DEFAULT_LOCALE) {
         super();
 
-        if (cacheResourcesPath) {
-            this._cacheResourcesPath = path.join(cacheResourcesPath);
+        if (userDataPath) {
+            this._userDataPath = path.join(userDataPath, DIRECTORY_NAME);
         } else {
-            this._cacheResourcesPath = path.join(DEFAULT_CACHE_RESOURCES_PATH);
+            this._userDataPath = path.join(DEFAULT_USER_DATA_PATH, DIRECTORY_NAME);
         }
+        this._configPath = path.join(this._userDataPath, 'config.json');
 
-        if (builtinResourcesPath) {
-            this._builtinResourcesPath = path.join(builtinResourcesPath);
+        // The path that store initial resources.
+        if (initialResourcesPath) {
+            this._resourcesPath = path.join(initialResourcesPath);
         } else {
-            this._builtinResourcesPath = path.join(DEFAULT_BUILTIN_RESOURCES_PATH);
-        }
-
-        // If the path to Govin_EXTERNAL_RESOURCES is set in the environment variable, or there
-        // is an GovinExternalResources folder in the same directory as the software installation directory,
-        // the content in this path or directory will be used first, rather than the content in the software
-        // installation path.
-        // This method is used when customizing by a third-party manufacturer, so as to avoid overwriting
-        // the content of the third - party manufacturer when updating the software.
-        // For MAC or Linux devices, it is not practical to use a path relative to the installation
-        // directory to store GovinExternalResources, so we will scan the external resources path
-        // set in the environment variable first.
-        const envGovinExternalResources = process.env.GOVIN_EXTERNAL_RESOURCES;
-        if (envGovinExternalResources) {
-            console.info(`env GOVIN_EXTERNAL_RESOURCES: \
-"${envGovinExternalResources}"`);
-            this._builtinResourcesPath = envGovinExternalResources;
-        } else {
-            const thirdPartyResourcesPath = path.join(this._builtinResourcesPath, '../../GovinExternalResources');
-            if (fs.existsSync(thirdPartyResourcesPath)) {
-                console.info('The GovinExternalResources folder is detected in the parent directory');
-                this._builtinResourcesPath = thirdPartyResourcesPath;
-            }
-        }
-
-        if (!fs.existsSync(this._builtinResourcesPath)) {
-            console.error(clc.red(`The external resource path does not exist: ${this._builtinResourcesPath}`));
-        }
-
-        if (fs.existsSync(path.join(this._cacheResourcesPath, 'config.json'))) {
-            this._configPath = path.join(this._cacheResourcesPath, 'config.json');
-        } else {
-            this._configPath = path.join(this._builtinResourcesPath, 'config.json');
+            this._resourcesPath = path.join(__dirname, DIRECTORY_NAME);
         }
 
         this._locale = locale;
 
         this._latestVersion = null;
         this.updater = null;
+    }
+
+    checkResources () {
+        if (!fs.existsSync(this._configPath)){
+            return Promise.reject(`Cannot find config file: ${this._configPath}`);
+        }
+
+        const dirHash = getConfigHash(this._configPath);
+
+        // If no hash value in config file, report a warning but don't stop the process.
+        if (!dirHash) {
+            console.warn(clc.yellow(`WARN: no hash value found in ${this._configPath}`));
+            return Promise.resolve();
+        }
+
+        return checkDirHash(this._userDataPath, dirHash);
+    }
+
+    initializeResources (callback = null) {
+        if (callback) {
+            callback({phase: INIT_RESOURCES_STEP.verifying});
+        }
+        fs.ensureDirSync(this._userDataPath);
+
+        const copyResources = () => {
+            console.log(`copy ${this._resourcesPath} to ${this._userDataPath}`);
+            if (callback) {
+                callback({phase: INIT_RESOURCES_STEP.copying});
+            }
+
+            // copy the initial resources to user data directory
+            return fs.mkdirs(this._userDataPath)
+                .then(() => fs.copy(this._resourcesPath, this._userDataPath))
+                .then(() => {
+                    lockFile.unlockSync(this._userDataPath);
+                    return this.checkResources();
+                });
+        };
+
+        const waitUntillInitializeFinish = () => {
+            if (lockFile.checkSync(this._userDataPath)) {
+                setTimeout(() => {
+                    console.log(clc.yellow(`WARN: A resource initialize process is already running, will recheck proccess state after ${RECHECK_INTERVAL} ms`)); // eslint-disable-line max-len
+                    waitUntillInitializeFinish();
+                }, RECHECK_INTERVAL);
+            } else {
+                this.emit('initialize-finish');
+            }
+        };
+
+        if (lockFile.checkSync(this._userDataPath)) {
+            waitUntillInitializeFinish();
+            return new Promise(resolve => {
+                this.on('initialize-finish', () => {
+                    resolve();
+                });
+            });
+        }
+
+        lockFile.lockSync(this._userDataPath);
+        return this.checkResources()
+            .then(() => {
+                lockFile.unlockSync(this._userDataPath);
+            })
+            .catch(e => {
+                console.log(clc.yellow(`WARN: Check resources failed, try to initialize resources: ${e}`));
+                if (fs.existsSync(this._userDataPath)){
+                    return fs.rm(this._userDataPath, {recursive: true, force: true})
+                        .then(() => copyResources());
+                }
+                return copyResources();
+            });
     }
 
     checkUpdate (option) {
@@ -78,7 +125,7 @@ class GovinResourceServer extends Emitter{
         if (!this.updater) {
             this.updater = new ResourceUpdater(
                 this._locale === 'CN' && config.updater.cn ? config.updater.cn : config.updater.default,
-                path.dirname(this._cacheResourcesPath));
+                path.dirname(this._userDataPath));
         }
 
         return this.updater.checkUpdate(option)
@@ -99,9 +146,7 @@ class GovinResourceServer extends Emitter{
     }
 
     listen (port = null) {
-        const server = new ResourceServer(this._cacheResourcesPath, this._builtinResourcesPath);
-        console.info(`cached external resources path: "${this._cacheResourcesPath}"`);
-        console.info(`builtin external resources path: "${this._builtinResourcesPath}"`);
+        const server = new ResourceServer(this._userDataPath);
 
         server.on('error', e => {
             this.emit('error', e);

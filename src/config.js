@@ -1,16 +1,16 @@
 const path = require('path');
 
 /**
- * The path of default cache resource.
+ * The name of reousce directory.
  * @readonly
  */
-const DEFAULT_CACHE_RESOURCES_PATH = path.join(__dirname, '../../.govinData/external-resources');
+const DIRECTORY_NAME = 'external-resources';
 
 /**
- * The path of default build-in resource.
+ * The path of default user data directory.
  * @readonly
  */
-const DEFAULT_BUILTIN_RESOURCES_PATH = path.join(__dirname, '../external-resources');
+const DEFAULT_USER_DATA_PATH = path.join(__dirname, '../../.govinData');
 
 /**
  * The locale of default.
@@ -43,6 +43,13 @@ const SERVER_NAME = 'govin-resource-server';
 const REOPEN_INTERVAL = 1000 * 1;
 
 /**
+ * Translate file name.
+ * @readonly
+ */
+const OFFICIAL_TRANSLATIONS_FILE = 'official-locales.json';
+const THIRD_PARTY_TRANSLATIONS_FILE = 'third-party-locales.json';
+
+/**
  * The time interval for recheck the state of initial
  * @readonly
  */
@@ -50,12 +57,14 @@ const RECHECK_INTERVAL = 1000 * 1;
 
 
 module.exports = {
-    DEFAULT_CACHE_RESOURCES_PATH,
-    DEFAULT_BUILTIN_RESOURCES_PATH,
+    DIRECTORY_NAME,
+    DEFAULT_USER_DATA_PATH,
     DEFAULT_LOCALE,
     DEFAULT_HOST,
     DEFAULT_PORT,
     SERVER_NAME,
     REOPEN_INTERVAL,
+    OFFICIAL_TRANSLATIONS_FILE,
+    THIRD_PARTY_TRANSLATIONS_FILE,
     RECHECK_INTERVAL
 };

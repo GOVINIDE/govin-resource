@@ -2,8 +2,7 @@
  * @fileoverview
  * Download external-resrouce from the specified repository, extract it and check the comparison checksum
  *
- * use --repo to specify the download address, e.g: --repo=GOVINIDE/external-resources
- * use --plat to Specify the download platform, gitee or github
+
  */
 
 const path = require('path');
@@ -15,8 +14,10 @@ const hashFiles = require('hash-files');
 const clc = require('cli-color');
 const Progress = require('node-fetch-progress');
 
+const {checkDirHash} = require('../src/calc-dir-hash');
 const {formatTime} = require('../src/format');
-const parseArgs = require('./lib/parseArgs');
+const parseArgs = require('./parseArgs');
+const getConfigHash = require('../src/get-config-hash');
 
 
 const {repo, plat, cdn} = parseArgs();
@@ -130,7 +131,7 @@ getLatest()
             .then(() => download(checksumUrl, checksumPath))
             .then(() => {
                 // Compare archive checksums
-                const zipChecksum = fs.readFileSync(checksumPath, 'utf8').split('  ')[0];
+                const zipChecksum = fs.readFileSync(checksumPath, 'utf8').split(' ')[0];
                 hashFiles({files: resourcePath, algorithm: 'sha256'}, (error, hash) => {
                     if (error) {
                         throw error;
@@ -140,7 +141,18 @@ getLatest()
                         console.info(`${resourcePath} has passed the checksum detection`);
                         extract(resourcePath, {dir: extractPath})
                             .then(() => {
+                                // Compare folder checksums
+                                const configFilePath = path.resolve(extractPath, 'config.json');
+                                const dirHash = getConfigHash(configFilePath);
+                                if (!dirHash) {
+                                    console.warn(clc.yellow(`WARN: no hash value found in ${configFilePath}`));
+                                    return Promise.resolve();
+                                }
+                                return checkDirHash(extractPath, dirHash);
+                            })
+                            .then(() => {
                                 fs.rmSync(downloadPath, {recursive: true, force: true});
+
                                 console.log(clc.green(`\nExternal resource has been successfully downloaded and extracted to path: ${extractPath}`)); // eslint-disable-line max-len
                             })
                             .catch(() => {
@@ -155,7 +167,4 @@ getLatest()
             });
 
     })
-    .catch(err => {
-        console.log(clc.red(`ERR!: ${err}`));
-        process.exit(1);
-    });
+    .catch(err => console.log(clc.red(`ERR!: ${err}`)));
